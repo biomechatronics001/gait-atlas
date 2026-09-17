@@ -1,6 +1,6 @@
 # Cross-Dataset Gait Explorer: 120 Public Datasets
 
-**Open the explorer: https://biomechatronics001.github.io/IEEE-JBHI-120-biomechanics-datasets/**
+**Open the explorer: https://biomechatronics001.github.io/gait-atlas/**
 
 One page, no install, no sign-in. It draws every curve released by the 120 public
 datasets of the paper's field, healthy unassisted adults, on one gait-cycle clock.
@@ -45,7 +45,7 @@ Zhou, J., Zhong, S., Zheng, B., Gao, W., Wang, S., Yuan, Y., Zhou, X., & Su, H.
 (2026). *A Survey and Harmonization of 120 Public Datasets for Cross-Dataset
 Analysis of Lower-Limb Kinematics, Kinetics, and Surface EMG*. Manuscript and
 data release, version 2026-09-15.
-https://biomechatronics001.github.io/IEEE-JBHI-120-biomechanics-datasets/
+https://biomechatronics001.github.io/gait-atlas/
 
 The archival DOI will be added after it is assigned. If you use specific curves,
 also cite their original dataset publications; select any dataset in the explorer
