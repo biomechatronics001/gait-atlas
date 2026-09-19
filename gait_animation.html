@@ -248,7 +248,7 @@
   <!-- The first two rows are the explorer's own header, copied: same title, same buttons in the same
        places. Buttons with no job on this page stay as blank placeholders so the two pages line up
        and the switch sits in the same spot on both. The CSV label is only there to give the blank its width. -->
-  <div id="gaHead" data-theme="light"><div class="shell"><header class="top">
+  <div id="gaHead" data-theme="dark"><div class="shell"><header class="top">
     <div class="brand"><h1>Gait-Atlas: Cross-Dataset Gait Explorer · <span class="em">Animation</span></h1></div>
     <div class="top-actions">
       <button class="tbtn blank" type="button" disabled tabindex="-1" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg><span>CSV · 63 curves</span></button>
@@ -262,7 +262,7 @@
     </div>
   </header></div></div>
 
-  <div id="top" data-theme="light">
+  <div id="top" data-theme="dark">
     <h1><span id="h1sub">muscle lines · 13 lit by our EMG · legs driven by our joint angles</span><button id="drawerBtn" type="button" aria-expanded="false" aria-controls="top" title="Show / hide controls">☰ Controls</button></h1>
     <div class="grp ctl"><label>Action</label><select id="action"></select></div>
     <div class="grp ctl"><label>Angles</label><select id="angleDs" title="Dataset driving hip / knee / ankle angles"></select></div>
@@ -3678,8 +3678,8 @@ function syncResponsiveUI(){
   const cw=canvas.clientWidth, ch=canvas.clientHeight, cover=Math.round(Math.min(topH, ch*0.45));
   if(cw && ch && (cw!==_view.w || ch!==_view.h || cover!==_view.cover || under!==_view.under)){
     _view.w=cw; _view.h=ch; _view.cover=cover; _view.under=under;
-    const fh=Math.max(120, ch-cover-under);
-    camera.aspect=cw/fh; camera.setViewOffset(cw, fh, 0, -cover, cw, ch); camera.updateProjectionMatrix();
+    const fh=Math.max(120, ch-cover-under), fw=cw*fh/ch;   // same ratio on both axes: no squash
+    camera.aspect=cw/ch; camera.setViewOffset(fw, fh, (fw-cw)/2, -cover, cw, ch); camera.updateProjectionMatrix();
   }
 }
 const _view={w:0,h:0,cover:-1,under:-1};
@@ -4575,9 +4575,9 @@ const UNDER_DEVELOPMENT = ['StairAscent','StairDescent','Running'];
 function initUI(){
   const gh=document.getElementById('gaHead');
   const setTheme=t=>{ gh.setAttribute('data-theme',t); document.getElementById('top').setAttribute('data-theme',t); };
-  try{ const t=localStorage.getItem('gx_theme'); if(t==='light'||t==='dark') setTheme(t); }catch(e){}
-  document.getElementById('gaThemeBtn').onclick=()=>{ const now=gh.getAttribute('data-theme')==='light'?'dark':'light';
-    setTheme(now); try{ localStorage.setItem('gx_theme',now); }catch(e){} syncResponsiveUI(); };
+  // this page is dark: the scene is dark, so it does not take the explorer's saved light choice;
+  // the toggle works for this visit only
+  document.getElementById('gaThemeBtn').onclick=()=>{ setTheme(gh.getAttribute('data-theme')==='light'?'dark':'light'); syncResponsiveUI(); };
   document.getElementById('explorerBtn').href = EXPLORER_URL;
   const acts=angleData.actions.filter(a=>angleData.data[a]);
   opt(document.getElementById('action'), acts.filter(a=>!UNDER_DEVELOPMENT.includes(a)).concat(acts.filter(a=>UNDER_DEVELOPMENT.includes(a))), state.action);
