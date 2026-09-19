@@ -171,6 +171,10 @@ a.tbtn{text-decoration:none;line-height:normal}
 
 .side{display:flex;flex-direction:column;gap:12px;position:sticky;top:12px}
 .side-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px 7px}
+.numtog{font-size:.76rem}
+.numtog .box{width:26px;height:15px}
+.numtog .box::after{width:11px;height:11px}
+.numtog.on .box::after{transform:translateX(11px)}
 .side-hint{padding:0 12px 4px;font-size:.78rem;color:var(--faint);line-height:1.35}
 .side-hint b{color:var(--muted);font-weight:600}
 .filter{font-family:var(--font-mono);font-size:.8rem;color:var(--ink);background:var(--surface2);
@@ -352,7 +356,7 @@ a.tbtn{text-decoration:none;line-height:normal}
 
   <aside class="side">
     <section class="panel">
-      <div class="side-head"><span class="eyebrow" id="sideHead"></span></div>
+      <div class="side-head"><span class="eyebrow" id="sideHead"></span><button class="tog numtog" id="numTog" type="button" title="Show or hide each dataset's number"><span class="box"></span>Numbers</button></div>
       <div class="side-hint sans" id="sideHint"></div>
       <input class="filter" id="filter" placeholder="filter by name or number" autocomplete="off">
       <div class="legend" id="dsList"></div>
@@ -406,7 +410,10 @@ const $ = id => document.getElementById(id);
 const el = (t, cls, txt) => { const n = document.createElement(t); if (cls) n.className = cls;
   if (txt !== undefined) n.textContent = txt; return n; };
 const NUM = n => n.toLocaleString("en-US");
-const DSNAME = d => "#" + d.num + " " + d.name;     /* never a name without its number */
+/* the dataset number is shown or hidden by one switch (Numbers, above the list; hidden by default);
+   search still matches it either way, and exported CSVs always carry it */
+const NUMP = d => S.nums ? "#" + d.num + " " : "";
+const DSNAME = d => "#" + d.num + " " + d.name;     /* what the filter matches: name and number */
 
 const ACCENT_DARK = "#6cc6ff", ACCENT_LIGHT = "#0b6ec2";
 const ACCENT = ACCENT_DARK, MEDIAN = "#eaf2ff", BAND = "rgba(108,198,255,.14)", BAND_EDGE = "#6cc6ff";
@@ -880,7 +887,7 @@ function drawPlot() {
       $("pick").textContent = ""; return; }
     if (h.tied.length > 1) {                      /* indistinguishable here: say so, do not guess */
       $("pick").textContent = "several curves meet here: "
-        + h.tied.slice(0, 4).map(k => "#" + DS_BY_ID[D.entries[k].ds].num + " " + D.entries[k].label).join(", ")
+        + h.tied.slice(0, 4).map(k => NUMP(DS_BY_ID[D.entries[k].ds]) + D.entries[k].label).join(", ")
         + (h.tied.length > 4 ? ", …" : "") + " — move along the cycle to separate them";
       return;
     }
@@ -901,7 +908,7 @@ function drawPlot() {
     famKeys.forEach((k, i) => g.appendChild(svgEl("rect", { x: i * (120 / famKeys.length),
       width: 120 / famKeys.length, y: 0, height: 10, fill: rampColour(COL(focusDs), i, famKeys.length) })));
     key.appendChild(document.createTextNode("within "
-      + "#" + DS_BY_ID[focusDs].num + " " + DS_BY_ID[focusDs].name + ": "));
+      + NUMP(DS_BY_ID[focusDs]) + DS_BY_ID[focusDs].name + ": "));
     key.appendChild(g);
     key.appendChild(document.createTextNode(" " + lo.toFixed(2) + " to " + hi.toFixed(2)
       + " m/s, light is slow and dark is fast"));
@@ -937,7 +944,7 @@ function scrollToRow(entry) {
 }
 
 /* ---------------------------------------------------------------- state and controls */
-const S = { mod: "angle", ch: null, act: "LevelWalk", agg: false, norm: false, dev: false,
+const S = { nums: false, mod: "angle", ch: null, act: "LevelWalk", agg: false, norm: false, dev: false,
             stance: false, pwr: "both", lo: SPD.range[0], hi: SPD.range[1], ss: true, ns: true,
             open: null, openFam: null, card: false, at: null,
             hover: null, hoverFam: null, filter: "" };
@@ -1124,9 +1131,11 @@ function row(d, kind, label, note, entry, mps) {
        ? rampColour(COL(d.id), famKeys.indexOf(entry), famKeys.length) : COL(d.id));
   if (kind !== "yes") sw.style.boxShadow = "0 0 0 1px var(--line3) inset";
   r.appendChild(sw);
-  const no = el("span", "lno", "#" + d.num);
+  /* numbers hidden: the handle names how many curves it takes, and a single-curve row needs none */
+  const nFam = Object.keys(ent).filter(k => ent[k].ds === d.id).length;
+  const no = el("span", "lno", S.nums ? "#" + d.num : (kind === "yes" && nFam > 1 ? "×" + nFam : ""));
   if (kind === "yes") {
-    no.title = "Take every curve of #" + d.num + " " + d.name + " at once"
+    no.title = "Take every curve of " + NUMP(d) + d.name + " at once"
       + " (a dataset published at several speeds is shaded slow to fast when you do)";
     no.onclick = ev => { ev.stopPropagation();
       const take = S.openFam !== d.id;
@@ -1158,7 +1167,7 @@ function row(d, kind, label, note, entry, mps) {
       Object.keys(GX.mvc || {}).find(k => DS_OF(k) === d.id) || ""] || {}).by : null;
   const mine = mvcBy === "us";
   if (mine && kind === "yes") r.appendChild(el("span", "lby", "normalised here"));
-  r.title = "#" + d.num + " " + (label || d.name) + (mps != null ? " m/s" : "")
+  r.title = NUMP(d) + (label || d.name) + (mps != null ? " m/s" : "")
     + (d.klass === "Healthy" ? "" : " · mixed dataset, able-bodied arm only")
     + (mine ? " · normalised here: the percentage is computed by this project, not published by"
             + " the authors" : "")
@@ -1227,10 +1236,11 @@ function drawList() {
   const anySplit = Object.keys(shown).some(id => shown[id].member);
   hint.appendChild(document.createTextNode("Click a row for one curve"
     + (anySplit ? ", or its " : ", or the ")));
-  hint.appendChild(el("b", null, "number"));
+  hint.appendChild(el("b", null, S.nums ? "number" : "×n"));
   hint.appendChild(document.createTextNode(anySplit
     ? " for every speed that dataset publishes, shaded slow to fast."
     : " for the whole dataset. Hover a curve in the plot to find its row."));
+  $("numTog").classList.toggle("on", S.nums);
 }
 
 /* ---------------------------------------------------------------- provenance, one click away */
@@ -1245,7 +1255,7 @@ function drawProv() {
   const sw = el("span", "sw"); sw.style.background = COL(d.id); h.appendChild(sw);
   const me = shownEntry && ent[shownEntry] ? ent[shownEntry] : null;
   h.appendChild(document.createTextNode(
-    "#" + d.num + " " + (S.openFam || !me ? d.name : me.label)));
+    NUMP(d) + (S.openFam || !me ? d.name : me.label)));
   const x = el("button", null, "close"); x.onclick = () => { S.card = false; drawProv(); };
   h.appendChild(x); box.appendChild(h);
   const dl = el("dl");
@@ -1422,7 +1432,7 @@ function drawPending() {
   const host = $("pending"); host.textContent = "";
   const p = pendingNotes();
   if (!p.length) return;
-  const names = [...new Set(p.map(x => "#" + DS_BY_ID[x.ds].num + " " + DS_BY_ID[x.ds].name))];
+  const names = [...new Set(p.map(x => NUMP(DS_BY_ID[x.ds]) + DS_BY_ID[x.ds].name))];
   const box = el("div", "pending");
   box.appendChild(el("b", null, "Not in these curves yet: "));
   box.appendChild(document.createTextNode(names.join(", ")
@@ -1591,7 +1601,7 @@ function exportScope(D) {
     const speed = e.mps == null ? "" : " @ " + e.mps.toFixed(2) + " m/s";
     const speedToken = e.mps == null ? "" : "-" + e.mps.toFixed(2).replace(".", "p") + "mps";
     return { kind: "selected", label: "selected curve", keys: [S.open],
-      button: "CSV · #" + d.num + speed,
+      button: "CSV · " + (S.nums ? "#" + d.num : d.name) + speed,
       subject: "#" + d.num + " " + d.name + speed,
       token: "selected-" + d.num + "-" + safe(d.name) + speedToken };
   }
@@ -1599,7 +1609,7 @@ function exportScope(D) {
     const family = all.filter(k => D.entries[k] && D.entries[k].ds === S.openFam);
     if (family.length) { const d = DS_BY_ID[S.openFam];
       return { kind: "selected", label: "selected dataset", keys: family,
-        button: "CSV · #" + d.num + " ×" + family.length,
+        button: "CSV · " + (S.nums ? "#" + d.num : d.name) + " ×" + family.length,
         subject: "#" + d.num + " " + d.name + " · " + family.length
           + (family.length === 1 ? " curve" : " condition curves"),
         token: "selected-" + d.num + "-" + safe(d.name) + "-" + family.length };
@@ -1823,6 +1833,10 @@ document.addEventListener("keydown", e => {
 });
 window.addEventListener("resize", () => { const c = document.querySelector(".dscard"); if (c) placeCard(c); });
 $("tourBtn").onclick = () => { TI = 0; renderTour(); };
+$("numTog").onclick = () => { S.nums = !S.nums;
+  try { localStorage.setItem("gx_nums", S.nums ? "on" : "off"); } catch (e) {}
+  render(); };
+try { S.nums = localStorage.getItem("gx_nums") === "on"; } catch (e) {}
 $("themeBtn").onclick = () => {
   const now = isLight() ? "dark" : "light";
   document.documentElement.setAttribute("data-theme", now);
@@ -1838,7 +1852,7 @@ drawHead(); buildSign(); buildCitation(); render();
 window.GXAPI = { csv: csvText, csvName: csvName, exportScope: () => exportScope(drawn()),
                  svg: svgText, hash: shareHash, apply: h => { applyHash(h); render(); },
                  state: () => JSON.parse(JSON.stringify(S)), tour: () => TOUR.length,
-                 range: () => SPD.range.slice() };
+                 range: () => SPD.range.slice(), nums: on => { S.nums = !!on; render(); } };
 </script>
 </body>
 </html>
