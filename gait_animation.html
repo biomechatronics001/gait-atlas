@@ -180,8 +180,13 @@
      Same typefaces, the explorer's dark-theme tokens, its label, dropdown, switch and button
      shapes, on a 16px base (the explorer uses 18px; this bar floats over the scene). Scoped to
      #top: the scene, HUD, legend and transport keep their own look. */
-  #top{--accent:#6cc6ff;--accent-ink:#04121f;--surface:#0f141d;--surface2:#141b26;--line2:#2b3646;--line3:#39465a;
-    --muted:#8c9aac;--ink:#e9eff7;
+  #top[data-theme="dark"]{--accent:#6cc6ff;--accent-ink:#04121f;--surface:#0f141d;--surface2:#141b26;--line:#212a38;
+    --line2:#2b3646;--line3:#39465a;--muted:#8c9aac;--ink:#e9eff7;--dim:#8c9aac;
+    --shadow:0 1px 0 rgba(255,255,255,.03),0 10px 30px -12px rgba(0,0,0,.7)}
+  #top[data-theme="light"]{--accent:#0b6ec2;--accent-ink:#ffffff;--surface:#ffffff;--surface2:#f3f6fa;--line:#dde3ea;
+    --line2:#cbd4de;--line3:#b3becb;--muted:#566373;--ink:#111823;--dim:#566373;
+    --shadow:0 1px 2px rgba(20,40,70,.05),0 10px 26px -14px rgba(20,40,70,.28)}
+  #top{
     --font-sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
     --font-mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
     font-family:var(--font-sans);font-size:15px;gap:10px 18px}
@@ -229,6 +234,11 @@
   #gaHead .tbtn:hover{color:var(--ink);border-color:var(--line3)}
   #gaHead .tbtn svg{width:15px;height:15px}
   #gaHead .tbtn.blank,#gaHead .tbtn.blank:hover{color:transparent;border-color:var(--line2);cursor:default}
+
+  /* the controls read as the explorer's first panel: a card in the page theme, aligned with the title */
+  #top{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);
+    padding:10px 14px;left:max(20px,calc((100vw - 1400px)/2 + 20px));right:max(20px,calc((100vw - 1400px)/2 + 20px));margin-top:12px}
+  @media (max-width:620px){ #top{left:8px;right:8px} }
 </style>
 </head>
 <body>
@@ -252,7 +262,7 @@
     </div>
   </header></div></div>
 
-  <div id="top">
+  <div id="top" data-theme="light">
     <h1><span id="h1sub">muscle lines · 13 lit by our EMG · legs driven by our joint angles</span><button id="drawerBtn" type="button" aria-expanded="false" aria-controls="top" title="Show / hide controls">☰ Controls</button></h1>
     <div class="grp ctl"><label>Action</label><select id="action"></select></div>
     <div class="grp ctl"><label>Angles</label><select id="angleDs" title="Dataset driving hip / knee / ankle angles"></select></div>
@@ -3660,7 +3670,19 @@ function syncResponsiveUI(){
   const topH=top.offsetTop+top.offsetHeight;
   legend.style.top=(topH+8)+'px';
   legend.style.maxHeight=Math.max(72,window.innerHeight-topH-74)+'px';
+  // The header and control panel cover the top of the canvas. The camera's full frame is the
+  // uncovered area only; the view then extends above it by the covered height. The scene centres
+  // below the panel and scales down in proportion, so the figure's head is never under it.
+  // The playback bar covers the bottom the same way.
+  const bot=document.getElementById('bottom'), under=bot?Math.round(bot.offsetHeight):0;
+  const cw=canvas.clientWidth, ch=canvas.clientHeight, cover=Math.round(Math.min(topH, ch*0.45));
+  if(cw && ch && (cw!==_view.w || ch!==_view.h || cover!==_view.cover || under!==_view.under)){
+    _view.w=cw; _view.h=ch; _view.cover=cover; _view.under=under;
+    const fh=Math.max(120, ch-cover-under);
+    camera.aspect=cw/fh; camera.setViewOffset(cw, fh, 0, -cover, cw, ch); camera.updateProjectionMatrix();
+  }
 }
+const _view={w:0,h:0,cover:-1,under:-1};
 function resize(){
   const w=canvas.clientWidth, h=canvas.clientHeight;
   if(canvas.width!==w||canvas.height!==h){ renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); const dpr=window.devicePixelRatio||1; musMat.resolution.set(w*dpr,h*dpr); ghost.musMat.resolution.set(w*dpr,h*dpr); grayMat.resolution.set(w*dpr,h*dpr); }
@@ -4552,9 +4574,10 @@ function updateLegendFilled(filledSet){
 const UNDER_DEVELOPMENT = ['StairAscent','StairDescent','Running'];
 function initUI(){
   const gh=document.getElementById('gaHead');
-  try{ const t=localStorage.getItem('gx_theme'); if(t==='light'||t==='dark') gh.setAttribute('data-theme',t); }catch(e){}
+  const setTheme=t=>{ gh.setAttribute('data-theme',t); document.getElementById('top').setAttribute('data-theme',t); };
+  try{ const t=localStorage.getItem('gx_theme'); if(t==='light'||t==='dark') setTheme(t); }catch(e){}
   document.getElementById('gaThemeBtn').onclick=()=>{ const now=gh.getAttribute('data-theme')==='light'?'dark':'light';
-    gh.setAttribute('data-theme',now); try{ localStorage.setItem('gx_theme',now); }catch(e){} syncResponsiveUI(); };
+    setTheme(now); try{ localStorage.setItem('gx_theme',now); }catch(e){} syncResponsiveUI(); };
   document.getElementById('explorerBtn').href = EXPLORER_URL;
   const acts=angleData.actions.filter(a=>angleData.data[a]);
   opt(document.getElementById('action'), acts.filter(a=>!UNDER_DEVELOPMENT.includes(a)).concat(acts.filter(a=>UNDER_DEVELOPMENT.includes(a))), state.action);
