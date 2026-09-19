@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Gait-Atlas: Musculoskeletal Gait · EMG-lit muscle animation</title>
+<title>Gait-Atlas: Cross-Dataset Gait Explorer · Animation</title>
 <style>
   :root{
     --bg:#0b0d10; --panel:rgba(18,21,27,.92); --ink:#e8ecf4; --dim:#8b93a4;
@@ -34,10 +34,6 @@
   button:hover{border-color:#3d4a5e}
   button.on{background:var(--accent);color:#111;border-color:var(--accent);font-weight:600}
   #drawerBtn{display:none}
-  #explorerBtn{display:inline-flex;align-items:center;margin-left:12px;background:#0f141d;color:#8c9aac;
-    border:1px solid #2b3646;border-radius:7px;padding:5px 10px;font:500 13px/normal system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-    letter-spacing:normal;text-decoration:none;white-space:nowrap;vertical-align:3px}
-  #explorerBtn:hover{color:#e9eff7;border-color:#39465a}
   #action option:disabled{color:#5b6475}
   .cmpctl{display:none}
   .cmpctl.show{display:flex}
@@ -211,15 +207,53 @@
   #top .toggle input[type=checkbox]:checked{background:var(--accent)}
   #top .toggle input[type=checkbox]:checked::after{transform:translateX(15px)}
   #top .toggle.hot{background:var(--surface);border-color:var(--accent)}
-  #top #explorerBtn{font-size:13.5px;padding:5px 10px;background:var(--surface);color:var(--muted);border-color:var(--line2)}
+
+  /* ---- the explorer's header, lifted: its tokens (both themes), its sizes on its 18px base -------- */
+  #gaHead{position:absolute;top:0;left:0;right:0;z-index:7;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;font-size:18px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  #gaHead[data-theme="dark"]{--bg:#080b11;--surface:#0f141d;--line:#212a38;--line2:#2b3646;--line3:#39465a;
+    --ink:#e9eff7;--muted:#8c9aac;--accent:#6cc6ff;color-scheme:dark}
+  #gaHead[data-theme="light"]{--bg:#e9edf2;--surface:#ffffff;--line:#dde3ea;--line2:#cbd4de;--line3:#b3becb;
+    --ink:#111823;--muted:#566373;--accent:#0b6ec2;color-scheme:light}
+  #gaHead .shell{max-width:1400px;margin:0 auto;padding:0 20px}
+  #gaHead header.top{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;
+    padding:12px 2px 10px;border-bottom:1px solid var(--line)}
+  #gaHead .brand{display:flex;flex-direction:column;gap:5px;min-width:0}
+  #gaHead h1{margin:0;font-size:clamp(26.1px,2.6vw,35.1px);font-weight:760;letter-spacing:-.022em;line-height:1.05;color:var(--ink)}
+  #gaHead h1 .em{color:var(--accent)}
+  #gaHead .top-actions{display:flex;gap:8px;align-items:flex-start;justify-content:flex-end;flex-wrap:wrap}
+  #gaHead .tbtn{background:var(--surface);border:1px solid var(--line2);color:var(--muted);border-radius:7px;
+    padding:7.2px 11.7px;cursor:pointer;font:inherit;font-size:15.3px;line-height:normal;display:inline-flex;
+    align-items:center;gap:7px;white-space:nowrap;text-decoration:none;margin:0}
+  #gaHead .tbtn:hover{color:var(--ink);border-color:var(--line3)}
+  #gaHead .tbtn svg{width:15px;height:15px}
+  #gaHead .tbtn.blank,#gaHead .tbtn.blank:hover{color:transparent;border-color:var(--line2);cursor:default}
 </style>
 </head>
 <body>
 <div id="app">
   <canvas id="gl"></canvas>
 
+  <!-- The first two rows are the explorer's own header, copied: same title, same buttons in the same
+       places. Buttons with no job on this page stay as blank placeholders so the two pages line up
+       and the switch sits in the same spot on both. The CSV label is only there to give the blank its width. -->
+  <div id="gaHead" data-theme="light"><div class="shell"><header class="top">
+    <div class="brand"><h1>Gait-Atlas: Cross-Dataset Gait Explorer · <span class="em">Animation</span></h1></div>
+    <div class="top-actions">
+      <button class="tbtn blank" type="button" disabled tabindex="-1" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg><span>CSV · 63 curves</span></button>
+      <button class="tbtn blank" type="button" disabled tabindex="-1" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v14H4z"/><path d="M4 15l4-4 3 3 4-5 5 6"/></svg>SVG</button>
+      <button class="tbtn blank" type="button" disabled tabindex="-1" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 13a5 5 0 007 0l2-2a5 5 0 00-7-7l-1 1"/><path d="M14 11a5 5 0 00-7 0l-2 2a5 5 0 007 7l1-1"/></svg>Share</button>
+      <button class="tbtn blank" type="button" disabled tabindex="-1" aria-hidden="true">Cite</button>
+      <button class="tbtn blank" type="button" disabled tabindex="-1" aria-hidden="true">Conventions</button>
+      <button class="tbtn blank" type="button" disabled tabindex="-1" aria-hidden="true">Tour</button>
+      <button class="tbtn" id="gaThemeBtn" type="button" title="Toggle light / dark" aria-label="Toggle light or dark theme"><span>◐</span></button>
+      <a class="tbtn" id="explorerBtn" href="index.html" title="Back to the cross-dataset curves">Explorer</a>
+    </div>
+  </header></div></div>
+
   <div id="top">
-    <h1>Gait-Atlas: Musculoskeletal Gait<span id="h1sub">muscle lines · 13 lit by our EMG · legs driven by our joint angles</span><button id="drawerBtn" type="button" aria-expanded="false" aria-controls="top" title="Show / hide controls">☰ Controls</button><a id="explorerBtn" href="index.html" title="Back to the cross-dataset curves">Explorer</a></h1>
+    <h1><span id="h1sub">muscle lines · 13 lit by our EMG · legs driven by our joint angles</span><button id="drawerBtn" type="button" aria-expanded="false" aria-controls="top" title="Show / hide controls">☰ Controls</button></h1>
     <div class="grp ctl"><label>Action</label><select id="action"></select></div>
     <div class="grp ctl"><label>Angles</label><select id="angleDs" title="Dataset driving hip / knee / ankle angles"></select></div>
     <div class="grp ctl"><label>EMG</label><select id="emgDs" title="Dataset lighting the 13 muscles"></select></div>
@@ -3621,7 +3655,9 @@ function syncResponsiveUI(){
   if(narrow!==_legendNarrow){ _legendNarrow=narrow; _legendManual=false;
     if(window.innerWidth<=620 && state.showHud){ state.showHud=false; const h=document.getElementById('hud'), b=document.getElementById('hudBtn'); if(h) h.classList.add('hide'); if(b) b.classList.remove('on'); } }
   if(!_legendManual) setLegendCompact(narrow);
-  const topH=top.offsetHeight;
+  const head=document.getElementById('gaHead');
+  top.style.top=(head?head.offsetHeight:0)+'px';
+  const topH=top.offsetTop+top.offsetHeight;
   legend.style.top=(topH+8)+'px';
   legend.style.maxHeight=Math.max(72,window.innerHeight-topH-74)+'px';
 }
@@ -4511,12 +4547,17 @@ function updateLegendFilled(filledSet){
   });
 }
 
-// stair ascent and descent are not finished in this animation; they stay listed so the reader
-// sees they exist, but cannot be chosen
-const UNDER_DEVELOPMENT = ['StairAscent','StairDescent'];
+// stair ascent, stair descent and running are not finished in this animation; they stay listed,
+// at the bottom, so the reader sees they exist, but cannot be chosen
+const UNDER_DEVELOPMENT = ['StairAscent','StairDescent','Running'];
 function initUI(){
+  const gh=document.getElementById('gaHead');
+  try{ const t=localStorage.getItem('gx_theme'); if(t==='light'||t==='dark') gh.setAttribute('data-theme',t); }catch(e){}
+  document.getElementById('gaThemeBtn').onclick=()=>{ const now=gh.getAttribute('data-theme')==='light'?'dark':'light';
+    gh.setAttribute('data-theme',now); try{ localStorage.setItem('gx_theme',now); }catch(e){} syncResponsiveUI(); };
   document.getElementById('explorerBtn').href = EXPLORER_URL;
-  opt(document.getElementById('action'), angleData.actions.filter(a=>angleData.data[a]), state.action);
+  const acts=angleData.actions.filter(a=>angleData.data[a]);
+  opt(document.getElementById('action'), acts.filter(a=>!UNDER_DEVELOPMENT.includes(a)).concat(acts.filter(a=>UNDER_DEVELOPMENT.includes(a))), state.action);
   UNDER_DEVELOPMENT.forEach(a=>{ const o=document.querySelector('#action option[value="'+a+'"]');
     if(o){ o.disabled=true; o.title='Under development'; o.textContent=a+' · under development'; } });
   document.getElementById('action').value = state.action;
