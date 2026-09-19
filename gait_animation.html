@@ -4404,9 +4404,10 @@ function opt(sel, list, cur, label){
   sel.innerHTML='';
   list.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=label?label(v):v; if(v===cur)o.selected=true; sel.appendChild(o); });
 }
-// readers see the explorer's names: "#104 Dorschky 2019" for a dataset, "Level Walking" for a movement
+// readers see the display name and year, "Dorschky 2019" (no deposit number here, by the user's call
+// 2026-09-18), and the explorer's movement labels, "Level Walking"
 function dsLabel(v){ const m=(angleData.meta||{})[v]||(emgData.meta||{})[v]||{};
-  return (m.num?'#'+m.num+' ':'')+(m.name||v); }
+  return m.name||v; }
 function byLabel(list){ return list.slice().sort((x,y)=>((angleData.meta[x]||emgData.meta[x]||{}).name||x).localeCompare((angleData.meta[y]||emgData.meta[y]||{}).name||y)); }
 function actLabel(a){ return (angleData.act_en||{})[a]||a; }
 // Per-action default: a dataset that has BOTH angles and EMG for this action (Gait120 when it does,
