@@ -18,7 +18,8 @@
   /* top bar */
   #top{position:absolute;top:0;left:0;right:0;display:flex;flex-wrap:wrap;gap:10px 16px;
     align-items:center;padding:9px 14px;background:linear-gradient(#0b0d10ee,#0b0d1000);z-index:5}
-  #top h1{font-size:14px;font-weight:700;margin:0;letter-spacing:.2px}
+  /* title and switch button take the explorer's type and its dark-theme button tokens */
+  #top h1{font-size:20px;font-weight:760;margin:0;letter-spacing:-.022em;line-height:1.1}
   #top h1 span{color:var(--dim);font-weight:500;font-size:12px;margin-left:6px}
   .grp{display:flex;align-items:center;gap:6px}
   .layers{min-width:0}
@@ -33,9 +34,10 @@
   button:hover{border-color:#3d4a5e}
   button.on{background:var(--accent);color:#111;border-color:var(--accent);font-weight:600}
   #drawerBtn{display:none}
-  #explorerBtn{display:inline-block;margin-left:10px;background:#151a22;color:var(--ink);border:1px solid var(--line);
-    border-radius:6px;padding:3px 9px;font-size:12px;font-weight:500;text-decoration:none;vertical-align:1px}
-  #explorerBtn:hover{border-color:#3d4a5e}
+  #explorerBtn{display:inline-flex;align-items:center;margin-left:12px;background:#0f141d;color:#8c9aac;
+    border:1px solid #2b3646;border-radius:7px;padding:5px 10px;font:500 13px/normal system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    letter-spacing:normal;text-decoration:none;white-space:nowrap;vertical-align:3px}
+  #explorerBtn:hover{color:#e9eff7;border-color:#39465a}
   #action option:disabled{color:#5b6475}
   .cmpctl{display:none}
   .cmpctl.show{display:flex}
@@ -177,6 +179,39 @@
     #legend{top:44px;right:8px}
     #legend:not(.compact){width:calc(100vw - 16px)}
   }
+
+  /* ---- top bar in the explorer's style (2026-09-18) ------------------------------------------
+     Same typefaces, the explorer's dark-theme tokens, its label, dropdown, switch and button
+     shapes, on a 16px base (the explorer uses 18px; this bar floats over the scene). Scoped to
+     #top: the scene, HUD, legend and transport keep their own look. */
+  #top{--accent:#6cc6ff;--accent-ink:#04121f;--surface:#0f141d;--surface2:#141b26;--line2:#2b3646;--line3:#39465a;
+    --muted:#8c9aac;--ink:#e9eff7;
+    --font-sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+    --font-mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+    font-family:var(--font-sans);font-size:15px;gap:10px 18px}
+  #top h1{font-family:var(--font-sans);color:var(--ink)}
+  #top h1 span{font-size:13px}
+  #top .grp label{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  #top select{font-family:var(--font-sans);font-size:14.5px;color:var(--ink);background-color:var(--surface2);
+    border:1px solid var(--line2);border-radius:7px;padding:4px 28px 4px 9px;appearance:none;-webkit-appearance:none;cursor:pointer;
+    background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+    background-position:right 13px center,right 8px center;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+  #top select:hover{border-color:var(--line3)}
+  #top select:focus{outline:2px solid var(--accent);outline-offset:1px}
+  #top button{font-family:var(--font-sans);font-size:13.5px;background:var(--surface);color:var(--muted);
+    border:1px solid var(--line2);border-radius:7px;padding:5px 10px;line-height:normal}
+  #top button:hover{color:var(--ink);border-color:var(--line3)}
+  #top button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+  #top .toggle{gap:8px;font-size:14px;color:var(--muted)}
+  #top .toggle:has(input:checked){color:var(--ink)}
+  #top .toggle input[type=checkbox]{appearance:none;-webkit-appearance:none;margin:0;flex:none;cursor:pointer;
+    width:34px;height:19px;border-radius:11px;background:var(--line2);position:relative;transition:background .15s}
+  #top .toggle input[type=checkbox]::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;
+    border-radius:50%;background:#fff;transition:transform .15s}
+  #top .toggle input[type=checkbox]:checked{background:var(--accent)}
+  #top .toggle input[type=checkbox]:checked::after{transform:translateX(15px)}
+  #top .toggle.hot{background:var(--surface);border-color:var(--accent)}
+  #top #explorerBtn{font-size:13.5px;padding:5px 10px;background:var(--surface);color:var(--muted);border-color:var(--line2)}
 </style>
 </head>
 <body>

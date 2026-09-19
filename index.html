@@ -60,7 +60,8 @@ h1 .em{color:var(--accent)}
 .tbtn{background:var(--surface);border:1px solid var(--line2);color:var(--muted);border-radius:var(--r-sm);
   padding:.4rem .65rem;cursor:pointer;font-size:.85rem;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
 .tbtn:hover{color:var(--ink);border-color:var(--line3)}
-a.tbtn{text-decoration:none}
+/* an <a> inherits the body line-height; a <button> does not, so without this the link stands taller */
+a.tbtn{text-decoration:none;line-height:normal}
 .tbtn svg{width:15px;height:15px}
 .export-control{display:flex;align-items:center;gap:3px;position:relative}
 .export-meta{position:absolute;z-index:75;right:0;top:calc(100% + 6px);width:290px;padding:8px 10px;
