@@ -570,11 +570,19 @@ function groups(act, mod, ch) {
   const yes = new Set(Object.keys(seriesFor(act, mod, ch)).map(DS_OF));
   Object.keys(computedFor(act, mod, ch)).forEach(k => yes.add(DS_OF(k)));
   const noMvc = mod === "emgpct" ? noMvcHere(act, ch) : new Set();
-  const inView = [], held = [], none = [], nomvc = [];
-  GX.datasets.forEach(d => yes.has(d.id) ? inView.push(d)
-    : noMvc.has(d.id) ? nomvc.push(d)
-    : (heldRecords(d.id, act, mod, ch).length ? held : none).push(d));
-  return { inView, held, none, nomvc };
+  /* 2026-10-12 (author): "held back" reads as if we withhold data. A dataset not drawn because its
+     licence does not permit redistribution is listed as "not redistributed"; any other stated reason
+     as "provided, not drawn". `held` stays the union so the counts in the sentence are unchanged. */
+  const inView = [], held = [], lic = [], none = [], nomvc = [];
+  GX.datasets.forEach(d => {
+    if (yes.has(d.id)) return inView.push(d);
+    if (noMvc.has(d.id)) return nomvc.push(d);
+    const recs = heldRecords(d.id, act, mod, ch);
+    if (!recs.length) return none.push(d);
+    held.push(d);
+    if (recs.some(w => w.kind === "licence")) lic.push(d);
+  });
+  return { inView, held, lic, none, nomvc };
 }
 function quantile(s, p) { const i = (s.length - 1) * p, lo = Math.floor(i), hi = Math.ceil(i);
   return s[lo] + (s[hi] - s[lo]) * (i - lo); }
@@ -1024,7 +1032,7 @@ function drawControls() {
       + (extra ? " movements. The paper counts " + NUM(nall + extra) + ": " + NUM(extra)
           + (extra === 1 ? " more dataset enters its analyses but its licence does not"
                          : " more datasets enter its analyses but their licences do not")
-          + " permit redistributing the curves, so they are listed as held back."
+          + " permit redistributing the curves, so they are listed as not redistributed."
         : " movements, which is the number the paper prints.")
       + (kinds ? " Of those, " + NUM(kinds.dep) + " publish power and " + NUM(kinds.rec)
                  + " have it reconstructed here from their own moment and angular velocity." : "");
@@ -1257,7 +1265,10 @@ function drawList() {
   group("no MVC recorded", (g.nomvc || []).filter(d => match(DSNAME(d)))
     .map(d => () => row(d, "nomvc")));  /* its own kind: the verifier must not read these
                                             as the not-deposited group, and the order differs */
-  group("provided, held back", g.held.filter(d => match(DSNAME(d))).map(d => () => row(d, "held")));
+  const licIds = new Set(g.lic.map(d => d.id));
+  group("not redistributed", g.lic.filter(d => match(DSNAME(d))).map(d => () => row(d, "held")));
+  group("provided, not drawn", g.held.filter(d => !licIds.has(d.id) && match(DSNAME(d)))
+    .map(d => () => row(d, "held")));
   group("not in the dataset", g.none.filter(d => match(DSNAME(d))).map(d => () => row(d, "none")));
   $("sideHead").textContent = "Datasets · " + NUM(GX.field.datasets) + " in the field";
   const hint = $("sideHint"); hint.textContent = "";
@@ -1400,7 +1411,8 @@ function drawProv() {
     const hh = heldRecords(d.id, S.act, S.mod, ch);
     cells.push({ lab: GX.ch_label[S.mod][ch] || ch,
       txt: mine.length ? mine.length + (mine.length === 1 ? " curve" : " curves")
-         : hh.length ? "provided, held back: " + hh[0].why : "not in the dataset",
+         : hh.length ? (hh[0].kind === "licence" ? hh[0].why : "provided, not drawn: " + hh[0].why)
+         : "not in the dataset",
       held: !mine.length && !!hh.length, why: hh.length ? hh[0].why : null });
   });
   const same = cells.length && cells.every(c => c.txt === cells[0].txt);
@@ -1408,7 +1420,7 @@ function drawProv() {
     .forEach(c => { if (c.why) said.add(c.why);
       add(c.lab, c.held ? el("span", "held", c.txt) : c.txt); });
   heldRecords(d.id, S.act, S.mod).filter(w => w.c === "*" && !said.has(w.why)).forEach(w =>
-    add("Held back", el("span", "held", (w.m === "*" ? "all measures" : w.m)
+    add(w.kind === "licence" ? "Not redistributed" : "Not drawn", el("span", "held", (w.m === "*" ? "all measures" : w.m)
       + (w.a === "*" ? ", every movement" : "") + ": " + w.why)));
   add("Cohort", d.cohort + (d.klass !== "Healthy"
     ? " — mixed dataset: only its able-bodied arm enters the field." : ""));
@@ -1503,15 +1515,18 @@ function drawProse() {
        + modo.label.toLowerCase() + " channel for this movement: independent laboratories,"
        + " independent participants, one cycle clock.",
        "The heavy line is their median and the blue band their interquartile range."])
-    .concat([NUM(g.held.length) + " provide it but are held back here for a stated reason; "
+    .concat([NUM(g.held.length) + " provide it but are not drawn here, each for a stated reason; "
              + NUM(g.none.length) + " do not include it."]
             /* In %MVC the fourth group is the one a reader will ask about first, because for those
                datasets the absence is final: an MVC that was never recorded cannot be recovered. */
             .concat((g.nomvc || []).length
               ? [NUM(g.nomvc.length) + " recorded this muscle but never a maximum voluntary"
                  + " contraction, so they can never appear on this scale."] : [])
+            .concat(g.lic.length ? ["Of the " + NUM(g.held.length) + " not drawn, " + NUM(g.lic.length)
+                     + (g.lic.length === 1 ? " is" : " are")
+                     + " not redistributed because the licence does not permit it."] : [])
             .concat(["The list beside the plot names every group; click a dataset for its number,"
-                     + " its identifier, its cycle origin and what is held back."]));
+                     + " its identifier, its cycle origin and, where it is not drawn, the reason."]));
   const readBox = $("read"); readBox.textContent = "";
   sentences.forEach(t => readBox.appendChild(el("div", "sent", t)));
   const [clo, chi] = clipOf(S.mod);
@@ -1776,8 +1791,9 @@ const TOUR = [
   { t: "#chRow", h: "Pick a measure, a joint, a movement", p: "Measure on the left, joint and movement beside it. Every option carries the number of datasets behind it, and an"
     + " option only exists where the resource holds data for it." },
   { t: "#dsList", h: "Every dataset is named, and so are the gaps", p: "Datasets in view are listed"
-    + " with their number and colour. Under them sit the datasets that provide this channel but are"
-    + " held back here, with the reason, and those that do not include it. Click a row to pin its"
+    + " with their number and colour. Under them sit the datasets whose licence does not permit"
+    + " redistribution, those that provide this channel but are not drawn here, each with the reason,"
+    + " and those that do not include it. Click a row to pin its"
     + " curve and open its provenance." },
   { t: "#togNorm", h: "Reference, deviation, stance", p: "Aggregate replaces the overlay with the pooled"
     + " median and IQR. The amber band is the released cross-laboratory reference, mean ± SD; deviation"
