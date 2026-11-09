@@ -26,8 +26,8 @@ redistribution are listed in grey without their curves.
 ## Citation
 
 Zhou, J., Zhong, S., Zheng, B., Gao, W., Wang, S., Yuan, Y., Zhou, X., & Su, H. (2026).
-GaitAtlas: Cross-Study Analysis and an Open Harmonized Database of Human Gait Kinematics,
-Kinetics, and EMG. Manuscript and data release, version 1.0.0,
+GaitAtlas: Harmonization and Cross-Study Analysis of Human Gait Kinematics, Kinetics, and EMG
+from 120 Public Datasets. Manuscript and data release, version 1.0.0,
 https://doi.org/10.5281/zenodo.24016895.
 
 When you use specific curves, also cite the original dataset publications. Select a dataset in
