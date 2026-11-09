@@ -1,7 +1,8 @@
 # GaitAtlas
 
-**Explorer: https://gaitatlas.allinexo.com/**
-**Gait animation: https://gaitatlas.allinexo.com/gait_animation.html**
+**Explorer: https://biomechatronics001.github.io/gait-atlas/**
+**Gait animation: https://biomechatronics001.github.io/gait-atlas/gait_animation.html**
+**Data release (CSV, version 1.0.0): https://doi.org/10.5281/zenodo.24016895**
 
 This repository holds the two web pages of GaitAtlas. The explorer shows lower-limb joint
 kinematics, joint kinetics, ground reaction force and EMG from 120 public datasets of unassisted
@@ -13,7 +14,7 @@ Both pages run in a web browser without installation.
 ## Using the explorer
 
 Choose a measure, a joint or muscle and a locomotion mode. Every dataset that published that
-channel is drawn with the pooled median and the between-dataset band. Select a curve to see its
+channel is drawn with the median across datasets and the between-dataset band. Select a curve to see its
 source record: citation, DOI, participants, leg, cycle definition and the processing applied.
 The current view can be exported as CSV or SVG. In level walking, curves can be filtered by
 walking speed, and a dataset that published several speeds is drawn as one curve per speed.
@@ -25,8 +26,9 @@ redistribution are listed in grey without their curves.
 ## Citation
 
 Zhou, J., Zhong, S., Zheng, B., Gao, W., Wang, S., Yuan, Y., Zhou, X., & Su, H. (2026).
-GaitAtlas: Survey and Harmonization of 120 Public Datasets for Cross-Dataset Analysis of Human
-Lower-Limb Kinematics, Kinetics, and EMG. https://gaitatlas.allinexo.com/
+GaitAtlas: Cross-Study Analysis and an Open Harmonized Database of Human Gait Kinematics,
+Kinetics, and EMG. Manuscript and data release, version 1.0.0,
+https://doi.org/10.5281/zenodo.24016895.
 
 When you use specific curves, also cite the original dataset publications. Select a dataset in
 the explorer to see its citation; the explorer's Cite button gives BibTeX.
